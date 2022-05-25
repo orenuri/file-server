@@ -38,10 +38,20 @@ app.post('/upload', uploadFiles.single('upload'), (req, res) => {
 
 app.put('/upload/:_filename', async (req, res, next) => {
     const uploadedFileName = updateFileName(req.params._filename, './upload')
-    var diskStream = fs.createWriteStream(path.join('./upload', uploadedFileName))
-    req.pipe(diskStream).on('finish', () => res.send())
     console.log('PUT file upload/'+req.params._filename+' saved as upload/' + uploadedFileName)
-    res.send()
+    try {
+        var diskStream = fs.createWriteStream(path.join('./upload', uploadedFileName))
+        req.pipe(diskStream)
+            .on('finish', () => {
+                console.log('finished saving file')
+                res.send('Done')
+            })
+            .on('close', () => console.log('close stream'))
+            .on('end', () => console.log('end stream'))
+            .on('error', (err) => console.log('error'+err))
+    } catch(e) {
+        res.status(400).send(e)
+    }
 })
 
 
